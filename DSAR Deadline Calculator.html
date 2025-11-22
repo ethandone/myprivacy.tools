@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DSAR Deadline Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f172a; --panel: #111827; --muted: #94a3b8; --text: #e5e7eb; --accent: #22c55e;
+      --warn: #f59e0b; --danger: #ef4444; --border: #1f2937; --input: #0b1220;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; background: var(--bg); color: var(--text);
+      font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    p.desc { color: var(--muted); margin: 0 0 20px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 0 0 16px; }
+    .grid { display: grid; gap: 12px; grid-template-columns: repeat(12, 1fr); }
+    .col-12 { grid-column: span 12; } .col-6 { grid-column: span 6; } .col-4 { grid-column: span 4; } .col-3 { grid-column: span 3; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    input[type="date"], input[type="text"], select, textarea {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--input); color: var(--text);
+    }
+    textarea { min-height: 68px; resize: vertical; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row > * { flex: 1; }
+    .btn { appearance: none; border: 1px solid var(--border); color: var(--text); background: #0b1220; padding: 10px 12px;
+      border-radius: 8px; cursor: pointer; transition: border-color .15s ease, background .15s ease, transform .02s; }
+    .btn:hover { border-color: #334155; background: #0d1424; } .btn:active { transform: translateY(1px); }
+    .btn-primary { background: #052e1a; border-color: #0f3b23; color: #d1fae5; }
+    .btn-primary:hover { background: #083822; border-color: #14532d; }
+    .btn-danger { background: #2b0b10; border-color: #3b0f14; color: #fee2e2; }
+    .note { color: var(--muted); font-size: 12px; }
+    .muted { color: var(--muted); }
+    .result { font-size: 16px; padding: 12px; border-radius: 10px; border: 1px dashed #374151; background: #0a101c; }
+    .result .final { font-size: 20px; font-weight: 700; color: #bbf7d0; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .tag { background: #0b1220; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; border-radius: 999px; font-size: 12px; }
+    .hidden { display: none; }
+    .small { font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>DSAR Deadline Calculator</h1>
+  <p class="desc">Add the received date and (if applicable) the ID verified date. The tool adds one calendar month from the clock start, pauses for your intervals, and moves the due date to the next working day if it falls on a weekend or UK bank holiday.</p>
+
+  <div class="card">
+    <div class="grid">
+      <div class="col-4">
+        <label for="receivedDate">DSAR received date</label>
+        <input id="receivedDate" type="date" />
+        <div class="note">The clock starts on the day of receipt (or the day ID is verified if you selected that option).</div>
+      </div>
+
+      <div class="col-4">
+        <label>Clock starts on</label>
+        <div class="row">
+          <label class="row" style="gap:6px; align-items:center; font-weight:500;">
+            <input type="radio" name="clockStart" id="startReceived" value="received" checked />
+            <span class="small">DSAR received</span>
+          </label>
+          <label class="row" style="gap:6px; align-items:center; font-weight:500;">
+            <input type="radio" name="clockStart" id="startID" value="id" />
+            <span class="small">ID verified</span>
+          </label>
+        </div>
+        <div class="note">ICO: if you reasonably request ID, the time limit begins when you receive it.</div>
+      </div>
+
+      <div class="col-4">
+        <label for="idVerifiedDate">ID verified date (if applicable)</label>
+        <input id="idVerifiedDate" type="date" disabled />
+        <div class="note">Enable by selecting “ID verified” as the clock start.</div>
+      </div>
+
+      <div class="col-4">
+        <label for="region">Region (UK bank holidays)</label>
+        <select id="region">
+          <option value="england-and-wales" selected>England and Wales</option>
+          <option value="scotland">Scotland</option>
+          <option value="northern-ireland">Northern Ireland</option>
+        </select>
+        <div class="row" style="margin-top:6px">
+          <label class="row" style="gap:6px; align-items:center; font-weight:500;">
+            <input id="autoHolidays" type="checkbox" checked />
+            <span class="small muted">Auto-load official bank holidays</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="col-4">
+        <label for="extensionMonths">Optional extension</label>
+        <select id="extensionMonths">
+          <option value="0" selected>No extension</option>
+          <option value="2">Add two months (complexity)</option>
+        </select>
+        <div class="note">Applies a two-month extension where justified.</div>
+      </div>
+
+      <div class="col-12">
+        <label for="customHolidays">Custom non-working days (optional)</label>
+        <textarea id="customHolidays" placeholder="YYYY-MM-DD, YYYY-MM-DD ..."></textarea>
+        <div class="note">Comma or newline separated dates. Added to official bank holidays.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <strong>Stop-the-clock intervals</strong>
+      <button class="btn" id="addPauseBtn" type="button">+ Add pause</button>
+    </div>
+    <div id="pauses"></div>
+    <div class="note" style="margin-top:8px;">Pauses suspend the countdown after the clock start. The end date is when the clock resumes.</div>
+  </div>
+
+  <div class="row" style="gap:12px; margin-bottom:16px;">
+    <button class="btn btn-primary" id="calcBtn" type="button">Calculate deadline</button>
+    <button class="btn" id="resetBtn" type="button">Reset</button>
+  </div>
+
+  <div id="output" class="card hidden">
+    <div class="result" id="resultBox">
+      <div><span class="muted">Received:</span> <strong id="outReceived">—</strong></div>
+      <div><span class="muted">Clock start:</span> <strong id="outClockStart">—</strong></div>
+      <div><span class="muted">Base deadline (1 month):</span> <strong id="outBase">—</strong></div>
+      <div><span class="muted">Extension applied:</span> <strong id="outExtension">—</strong></div>
+      <div><span class="muted">Total paused days:</span> <strong id="outPausedDays">—</strong></div>
+      <div><span class="muted">Provisional deadline:</span> <strong id="outProvisional">—</strong></div>
+      <div><span class="muted">Adjusted for weekends/bank holidays:</span> <span class="final" id="outFinal">—</span></div>
+      <div class="tags" id="tags"></div>
+    </div>
+    <div class="note">ICO: calculate one calendar month from the start date; if it lands on a weekend/bank holiday, use the next working day.</div>
+  </div>
+
+  <template id="pauseRowTpl">
+    <div class="card" data-pause-row>
+      <div class="grid">
+        <div class="col-3">
+          <label>Pause start</label>
+          <input type="date" data-pause-start />
+        </div>
+        <div class="col-3">
+          <label>Pause end</label>
+          <input type="date" data-pause-end />
+        </div>
+        <div class="col-6">
+          <label>Reason (optional)</label>
+          <input type="text" data-pause-reason placeholder="e.g., ID verification, clarification" />
+        </div>
+        <div class="col-12 row" style="justify-content: space-between;">
+          <label class="row" style="gap:6px; align-items:center; font-weight:500;">
+            <input type="checkbox" data-include-end />
+            <span class="small muted">Count the end date as paused (rare)</span>
+          </label>
+          <button class="btn btn-danger" type="button" data-remove>Remove</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+<script>
+  // Utility: timezone-safe local YYYY-MM-DD formatting
+  const fmt = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  // Parse YYYY-MM-DD into a local Date at 00:00 local time
+  const parseDate = (s) => {
+    if (!s) return null;
+    const [y, m, day] = s.split("-").map(Number);
+    return new Date(y, m - 1, day);
+  };
+
+  const addDays = (date, days) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+  };
+
+  // Add months, clamping to last day of target month (handles shorter months)
+  const addMonthsPreservingCalendar = (date, months) => {
+    const d = new Date(date);
+    const day = d.getDate();
+    const targetMonth = d.getMonth() + months;
+    const targetYear = d.getFullYear() + Math.floor(targetMonth / 12);
+    const monthIndex = ((targetMonth % 12) + 12) % 12;
+    const lastOfTargetMonth = new Date(targetYear, monthIndex + 1, 0).getDate();
+    const clampedDay = Math.min(day, lastOfTargetMonth);
+    return new Date(targetYear, monthIndex, clampedDay);
+  };
+
+  const isWeekend = (date) => [0, 6].includes(date.getDay());
+
+  // Caches for bank holidays
+  let bankHolidaysCache = {};
+  let loadedRegion = null;
+
+  const el = (id) => document.getElementById(id);
+  const pausesContainer = document.getElementById("pauses");
+  const pauseTpl = document.getElementById("pauseRowTpl");
+
+  function addPauseRow(values = {}) {
+    const node = document.importNode(pauseTpl.content, true);
+    const row = node.querySelector("[data-pause-row]");
+    const start = node.querySelector("[data-pause-start]");
+    const end = node.querySelector("[data-pause-end]");
+    const reason = node.querySelector("[data-pause-reason]");
+    const includeEnd = node.querySelector("[data-include-end]");
+    const removeBtn = node.querySelector("[data-remove]");
+
+    if (values.start) start.value = values.start;
+    if (values.end) end.value = values.end;
+    if (values.reason) reason.value = values.reason;
+    if (values.includeEnd) includeEnd.checked = true;
+
+    removeBtn.addEventListener("click", () => row.remove());
+    pausesContainer.appendChild(node);
+  }
+
+  async function loadBankHolidays(region) {
+    if (bankHolidaysCache[region]) return bankHolidaysCache[region];
+    const res = await fetch("https://www.gov.uk/bank-holidays.json", { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to load bank holidays");
+    const json = await res.json();
+    const regionData = json[region];
+    if (!regionData) throw new Error("Region not found in bank holidays feed");
+    const dates = regionData.events.map(e => e.date); // already YYYY-MM-DD
+    bankHolidaysCache[region] = new Set(dates);
+    loadedRegion = region;
+    return bankHolidaysCache[region];
+  }
+
+  function parseCustomHolidayInput() {
+    const raw = el("customHolidays").value || "";
+    const tokens = raw.split(/[\s,]+/).map(t => t.trim()).filter(Boolean);
+    const set = new Set();
+    for (const t of tokens) if (/^\d{4}-\d{2}-\d{2}$/.test(t)) set.add(t);
+    return set;
+  }
+
+  function mergeHolidaySets(primary, custom) {
+    const merged = new Set();
+    if (primary) for (const d of primary) merged.add(d);
+    if (custom) for (const d of custom) merged.add(d);
+    return merged;
+  }
+
+  function nextWorkingDay(date, holidaysSet) {
+    let d = new Date(date);
+    while (true) {
+      const iso = fmt(d); // local-safe
+      if (!isWeekend(d) && !holidaysSet.has(iso)) return d;
+      d = addDays(d, 1);
+    }
+  }
+
+  function calcPausedDays(rows) {
+    let total = 0;
+    for (const r of rows) {
+      const start = parseDate(r.start);
+      const end = parseDate(r.end);
+      if (!start || !end) continue;
+      if (end < start) throw new Error("Pause end cannot be before start.");
+      const msPerDay = 24 * 60 * 60 * 1000;
+      let days = Math.round((end - start) / msPerDay);
+      if (r.includeEnd) days += 1; // allow inclusive end if needed
+      total += days;
+    }
+    return total;
+  }
+
+  async function calculate() {
+    // Inputs
+    const receivedStr = el("receivedDate").value;
+    const receivedDate = parseDate(receivedStr);
+    if (!receivedDate) { alert("Please enter the DSAR received date."); return; }
+
+    const startOnID = document.getElementById("startID").checked;
+    const idVerifiedStr = el("idVerifiedDate").value;
+    const idVerifiedDate = idVerifiedStr ? parseDate(idVerifiedStr) : null;
+
+    let clockStartDate = receivedDate; // Rule: start on the day of receipt
+    if (startOnID) {
+      if (!idVerifiedDate) { alert("Please enter the ID verified date or select 'DSAR received' as the clock start."); return; }
+      if (idVerifiedDate < receivedDate) { alert("ID verified date cannot be before the DSAR received date."); return; }
+      clockStartDate = idVerifiedDate; // If ID requested reasonably, clock starts when ID is received
+    }
+
+    const extensionMonths = parseInt(el("extensionMonths").value || "0", 10);
+    const region = el("region").value;
+    const auto = el("autoHolidays").checked;
+
+    // Holidays
+    let official = new Set();
+    if (auto) {
+      try { official = await loadBankHolidays(region); }
+      catch (e) { console.warn(e); alert("Could not load official bank holidays. You can proceed with custom non-working days only."); }
+    }
+    const custom = parseCustomHolidayInput();
+    const holidays = mergeHolidaySets(official, custom);
+
+    // Pauses
+    const allPauses = [...document.querySelectorAll("[data-pause-row]")].map(row => ({
+      start: row.querySelector("[data-pause-start]").value,
+      end: row.querySelector("[data-pause-end]").value,
+      includeEnd: row.querySelector("[data-include-end]").checked,
+  }));
+
+    // Only consider pauses that have both start and end dates
+const filledPauses = allPauses.filter(p => p.start && p.end);
+
+let pausedDays = 0;
+try { pausedDays = calcPausedDays(filledPauses); }
+catch (e) { alert(e.message); return; }
+
+    // One-month period from the clock start (calculated on same calendar day)
+    const baseDeadline = addMonthsPreservingCalendar(clockStartDate, 1);
+
+    // Optional extension
+    const extendedDeadline = addMonthsPreservingCalendar(baseDeadline, extensionMonths);
+
+    // Add any stop-the-clock days
+    const provisional = addDays(extendedDeadline, pausedDays);
+
+    // Adjust to next working day if needed (weekend/bank holiday)
+    const finalDeadline = nextWorkingDay(provisional, holidays);
+
+    // Output
+    el("outReceived").textContent = fmt(receivedDate);
+    el("outClockStart").textContent = fmt(clockStartDate) + (startOnID ? " (ID verified)" : " (received)");
+    el("outBase").textContent = fmt(baseDeadline);
+    el("outExtension").textContent = extensionMonths ? `${extensionMonths} month(s)` : "None";
+    el("outPausedDays").textContent = `${pausedDays} day(s)`;
+    el("outProvisional").textContent = fmt(provisional);
+    el("outFinal").textContent = fmt(finalDeadline);
+
+// Tags
+const tags = document.getElementById("tags");
+tags.innerHTML = "";
+const addTag = (t) => { const span = document.createElement("span"); span.className = "tag"; span.textContent = t; tags.appendChild(span); };
+addTag(`Region: ${region.replace(/-/g, " ")}`);
+if (auto) addTag("Official bank holidays loaded");
+if (custom.size) addTag(`Custom non-working: ${custom.size}`);
+if (filledPauses.length) addTag(`Pauses: ${filledPauses.length}`);
+
+    document.getElementById("output").classList.remove("hidden");
+  }
+
+  // Wire up (unchanged)
+  document.getElementById("addPauseBtn").addEventListener("click", () => addPauseRow());
+  document.getElementById("calcBtn").addEventListener("click", calculate);
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    document.getElementById("receivedDate").value = "";
+    document.getElementById("startReceived").checked = true;
+    document.getElementById("startID").checked = false;
+    document.getElementById("idVerifiedDate").value = "";
+    document.getElementById("idVerifiedDate").disabled = true;
+    document.getElementById("extensionMonths").value = "0";
+    document.getElementById("region").value = "england-and-wales";
+    document.getElementById("autoHolidays").checked = true;
+    document.getElementById("customHolidays").value = "";
+    document.getElementById("pauses").innerHTML = "";
+    document.getElementById("output").classList.add("hidden");
+  });
+
+  // Toggle ID date enablement
+  document.getElementById("startReceived").addEventListener("change", (e) => {
+    if (e.target.checked) { document.getElementById("idVerifiedDate").disabled = true; }
+  });
+  document.getElementById("startID").addEventListener("change", (e) => {
+    if (e.target.checked) { document.getElementById("idVerifiedDate").disabled = false; }
+  });
+
+  // Sensible defaults
+  addPauseRow();
+</script>
+</body>
+</html>

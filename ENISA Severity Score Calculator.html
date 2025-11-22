@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ENISA Data Breach Severity Calculator</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #111827;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --accent: #60a5fa;
+    --low: #22c55e;
+    --med: #f59e0b;
+    --high: #f97316;
+    --vhigh: #ef4444;
+    --border: #1f2937;
+  }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    margin: 0;
+    padding: 0;
+  }
+  .container { max-width: 980px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 1.5rem; margin: 0 0 12px; }
+  .subtitle { color: var(--muted); margin-bottom: 24px; }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+  fieldset {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  legend { padding: 0 6px; color: var(--muted); font-weight: 600; }
+  .row {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 12px;
+    align-items: start;
+    margin: 12px 0;
+  }
+  .row label { color: var(--muted); }
+  .choices { display: flex; flex-wrap: wrap; gap: 10px; }
+  .choices label {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #0b1220; border: 1px solid var(--border);
+    padding: 8px 10px; border-radius: 8px; cursor: pointer;
+  }
+  input[type="radio"], input[type="checkbox"] { accent-color: var(--accent); }
+  select, input[type="number"], textarea {
+    width: 100%; background: #0b1220; border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 10px; outline: none;
+  }
+  textarea { min-height: 72px; resize: vertical; }
+  .help { color: var(--muted); font-size: 0.92rem; margin-top: 6px; }
+
+  .inline-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 0.85rem; font-weight: 600; border: 1px solid var(--border);
+    background: #0b1220; color: var(--muted);
+  }
+
+  .result {
+    background: linear-gradient(180deg, #0b1220, #0a101c);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px; margin-top: 16px;
+  }
+  .score-line {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    border-bottom: 1px dashed var(--border); padding-bottom: 10px; margin-bottom: 10px;
+  }
+  .score { font-size: 2rem; font-weight: 700; }
+
+  .badge { display: inline-block; padding: 6px 10px; border-radius: 8px; color: #0b1220; font-weight: 700; }
+  .low { background: var(--low); }
+  .med { background: var(--med); }
+  .high { background: var(--high); }
+  .vhigh { background: var(--vhigh); }
+
+  .formula { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  .flags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .flag { background: #0b1220; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; color: var(--muted); }
+  .actions { display: flex; gap: 10px; margin-top: 8px; }
+  button { background: #0b1220; border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+  button.primary { background: var(--accent); color: #0b1220; font-weight: 700; border: none; }
+
+  .footnote { color: var(--muted); font-size: 0.9rem; margin-top: 10px; }
+
+  /* Details blocks */
+  details.helpbox {
+    margin-top: 10px; background: #0b1220; border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+  }
+  details.helpbox summary {
+    cursor: pointer; color: var(--text); font-weight: 600;
+    list-style: none;
+  }
+  details.helpbox summary::-webkit-details-marker { display: none; }
+  .help-list { margin: 8px 0 0 0; padding-left: 18px; color: var(--muted); }
+  .help-list li { margin: 6px 0; }
+  .small { font-size: 0.9rem; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>ENISA Data Breach Severity Calculator</h1>
+  <div class="subtitle">Compute severity based on Data Processing Context (DPC), Ease of Identification (EI), and Circumstances of the Breach (CB).</div>
+
+  <div class="grid">
+    <fieldset>
+      <legend>1) Data Processing Context (DPC)</legend>
+
+      <div class="row">
+        <label>Data category</label>
+        <div class="choices" id="dpcCategory">
+          <label><input type="radio" name="dpcCat" value="simple" checked /> Simple (base 1)</label>
+          <label><input type="radio" name="dpcCat" value="behavioural" /> Behavioural (base 2)</label>
+          <label><input type="radio" name="dpcCat" value="financial" /> Financial (base 3)</label>
+          <label><input type="radio" name="dpcCat" value="sensitive" /> Sensitive (base 4)</label>
+        </div>
+      </div>
+
+      <details class="helpbox">
+        <summary>Examples and guidance for DPC categories</summary>
+        <ul class="help-list small">
+          <li><strong>Simple data</strong> (base 1): biographical/contact details and similar (e.g., full name, postal address, phone, education, family life, professional experience). Example cases: customer list of a supermarket (1); list from a luxury goods seller (2: implies higher financial status); delivery addresses of an adult book store (3: sexual preferences); undercover officers list (4: critical safety). Credentials that only access low-impact stores (e.g., music store) also map here (1). </li>
+          <li><strong>Behavioural data</strong> (base 2): location, traffic data, personal preferences and habits. Example cases: ISP helpdesk incoming calls (1); one week call history (2); one year call history (3: detailed profile); calls to a psychological support centre (4: infers health). Loyalty/supermarket monthly purchases (2); transport card location for a year (3); pharmacy purchases (4). </li>
+          <li><strong>Financial data</strong> (base 3): income, transactions, balances, bank statements, credit cards, invoices, investments, social welfare. Example cases: mere bank customer letter (1); one-day transactions without details (2); one-month balances (3); one-year detailed statements (4). Credit cards: very old/invalid (1); partial card info (2/3 depending details); full details enabling transactions (4). </li>
+          <li><strong>Sensitive data</strong> (base 4): health, political affiliation/opinions, sexual life. Example cases: “performed general blood tests” (1); ER blood test fact (2); test for a specific disease (3); actual test results (4). Political opinions in a closed forum (4). Dating site with declared sexual orientation (4). </li>
+          <li class="small"><em>Note</em>: If multiple categories apply, score each; use the highest value for DPC. Credentials inherit the category of what they can access (e.g., online banking credentials → financial 4 if they enable fraud).</li>
+        </ul>
+      </details>
+
+      <div class="row">
+        <label>Context adjustment</label>
+        <div>
+          <select id="dpcAdj">
+            <option value="0" selected>No adjustment</option>
+            <option value="-3">-3 Significant decrease (e.g., trivial/benign nature)</option>
+            <option value="-2">-2 Decrease (e.g., invalid/inaccurate, already public)</option>
+            <option value="-1">-1 Slight decrease</option>
+            <option value="1">+1 Increase (e.g., volume, controller/individuals’ characteristics)</option>
+            <option value="2">+2 Strong increase (e.g., detailed profiling possible)</option>
+            <option value="3">+3 Exceptional increase (e.g., critical safety for vulnerable groups)</option>
+          </select>
+          <div class="help">Adjust the base category score to reflect volume, controller/individuals’ characteristics, invalidity, public availability, or the nature of data. Final DPC is clamped to [1..4].</div>
+        </div>
+      </div>
+
+      <details class="helpbox">
+        <summary>When to adjust DPC (examples)</summary>
+        <ul class="help-list small">
+          <li><strong>Increase</strong> for higher volume/time span (e.g., one year of calls vs one week), controller context revealing more (e.g., online pharmacy vs stationery shop), or individuals with special characteristics (e.g., minors, public figures).</li>
+          <li><strong>Decrease</strong> for known invalid/inaccurate data, data already publicly available, or data whose nature is benign (e.g., medical certificate stating “good health” only).</li>
+        </ul>
+      </details>
+
+      <div class="row">
+        <label>Notes (optional)</label>
+        <div>
+          <textarea id="dpcNotes" placeholder="Explain contextual factors if deviating from the base score..."></textarea>
+          <div class="help">Helpful for record-keeping and explaining DPC adjustments.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <label>Computed DPC</label>
+        <div><span id="dpcDisplay" class="inline-badge">1.00</span></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>2) Ease of Identification (EI)</legend>
+
+      <div class="row">
+        <label>Identification level</label>
+        <div>
+          <select id="ei">
+            <option value="0.25">Negligible (0.25)</option>
+            <option value="0.5">Limited (0.5)</option>
+            <option value="0.75">Significant (0.75)</option>
+            <option value="1" selected>Maximum (1)</option>
+          </select>
+          <div class="help">Choose how easily individuals can be identified from the breached data and context.</div>
+        </div>
+      </div>
+
+      <details class="helpbox">
+        <summary>Examples for EI levels and identifiers</summary>
+        <ul class="help-list small">
+          <li><strong>Full name</strong>: 0.25 in a country with many duplicates; 0.5 where few share the name; 0.75 in a small city with few/no duplicates; 1 if combined with DOB/email.</li>
+          <li><strong>ID/passport/SSN</strong>: 0.25 if no link to reference database; 0.75 if reveals extra info and linked to other data; 1 if reference data present (e.g., ID + name/photo).</li>
+          <li><strong>Telephone/Home address</strong>: 0.25 if unlisted nationally; 0.5 if unlisted in a small city but contactable; 1 if listed in public registers.</li>
+          <li><strong>Email</strong>: 0.25 if not revealing name and not commonly used publicly; 0.75 if searchable/used widely; 1 if reveals name and is the primary public address.</li>
+          <li><strong>Pictures</strong>: 0.25 unclear CCTV; 0.5 unclear but context/location helps; 0.75 clear image; 1 clear + linked context (e.g., membership/home address).</li>
+          <li><strong>Codes/Aliases/Initials</strong>: 0.25 if cannot link to other data without access; 0.75 if reveals some info (e.g., first name) and linked; 1 if alias reveals full name or reference data available.</li>
+          <li class="small"><em>Note</em>: Combining identifiers increases EI—consider real-world cross-matching reasonably likely to be used.</li>
+        </ul>
+      </details>
+
+      <legend style="margin-top:16px;">3) Circumstances of the breach (CB)</legend>
+
+      <div class="row">
+        <label>Loss of confidentiality</label>
+        <div>
+          <select id="cbConf">
+            <option value="0">0 No evidence of disclosure</option>
+            <option value="0.25">+0.25 Limited disclosure (known recipients)</option>
+            <option value="0.5">+0.5 Broad disclosure (unknown/public)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <label>Loss of integrity</label>
+        <div>
+          <select id="cbInteg">
+            <option value="0">0 Altered but no harmful use</option>
+            <option value="0.25">+0.25 Possibly used, recoverable</option>
+            <option value="0.5">+0.5 Possibly used, not recoverable</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <label>Loss of availability</label>
+        <div>
+          <select id="cbAvail">
+            <option value="0">0 Easily recoverable</option>
+            <option value="0.25">+0.25 Temporarily unavailable</option>
+            <option value="0.5">+0.5 Not recoverable</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <label>Malicious intent</label>
+        <div class="choices">
+          <label><input type="checkbox" id="cbMalicious" /> +0.5 Intentional/malicious</label>
+        </div>
+      </div>
+
+      <details class="helpbox">
+        <summary>Examples for CB choices</summary>
+        <ul class="help-list small">
+          <li><strong>Confidentiality</strong>: 0 lost laptop/paper with no evidence of access; +0.25 email to known wrong recipients or cross-customer account views; +0.5 posted to public forum/P2P, sold on media, misconfigured public website.</li>
+          <li><strong>Integrity</strong>: 0 altered but original recovered before use; +0.25 possibly used incorrectly but recoverable (e.g., change requires reprocessing); +0.5 possibly used and not recoverable (original lost).</li>
+          <li><strong>Availability</strong>: 0 copies exist or easy reconstruction; +0.25 temporarily unavailable but reconstructable with effort; +0.5 not recoverable (no backup and cannot be re-provided).</li>
+          <li><strong>Malicious intent</strong>: +0.5 if intentional (e.g., theft/hacking to harm, selling data, deliberate posting/sharing).</li>
+        </ul>
+      </details>
+
+      <div class="row">
+        <label>Computed CB</label>
+        <div><span id="cbDisplay" class="inline-badge">0.00</span></div>
+      </div>
+    </fieldset>
+  </div>
+
+  <fieldset>
+    <legend>4) Flags (do not change score, but inform the assessment)</legend>
+    <div class="row">
+      <label>Individuals affected</label>
+      <div>
+        <input id="numIndividuals" type="number" min="0" step="1" placeholder="e.g., 1,000" />
+        <div class="help">Flag is shown if count exceeds 100.</div>
+      </div>
+    </div>
+    <div class="row">
+      <label>Data unintelligible?</label>
+      <div class="choices">
+        <label><input type="checkbox" id="flagUnintelligible" /> Data unintelligible (e.g., strong encryption, no key compromise)</label>
+      </div>
+    </div>
+
+    <details class="helpbox">
+      <summary>What these flags mean</summary>
+      <ul class="help-list small">
+        <li><strong>Individuals &gt; 100</strong>: higher overall scale and disclosure risk for any given person in larger incidents; inform notification decision-making.</li>
+        <li><strong>Unintelligible data</strong>: strong encryption without key compromise substantially reduces impact likelihood even if data were accessed.</li>
+      </ul>
+    </details>
+  </fieldset>
+
+  <div class="result" id="resultPanel">
+    <div class="score-line">
+      <div>
+        <div class="formula"><strong>Formula:</strong> <span class="mono">SE = DPC × EI + CB</span></div>
+        <div class="help">Low: SE &lt; 2 | Medium: 2 ≤ SE &lt; 3 | High: 3 ≤ SE &lt; 4 | Very High: 4 ≤ SE</div>
+      </div>
+      <div class="score" id="seScore">1.00</div>
+    </div>
+    <div class="score-line">
+      <div>Severity level</div>
+      <div id="seLevel" class="badge low">Low</div>
+    </div>
+    <div class="score-line">
+      <div>DPC × EI</div>
+      <div id="baseProduct" class="inline-badge">1.00</div>
+    </div>
+    <div class="score-line">
+      <div>CB total</div>
+      <div id="cbTotal" class="inline-badge">0.00</div>
+    </div>
+    <div>
+      <div class="flags" id="flagsArea"></div>
+      <div class="footnote">
+        Tip: Use the Notes under DPC to record justification for contextual adjustments and any assumptions.
+      </div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="btnRecalc">Recalculate</button>
+      <button id="btnReset">Reset</button>
+    </div>
+  </div>
+
+  <div class="footnote">
+    This tool implements ENISA’s data breach severity approach: DPC (1–4, adjusted by context), EI (0.25/0.5/0.75/1), CB additive (0/0.25/0.5 per element; +0.5 malicious), with SE bands Low/Medium/High/Very High. Flags: &gt;100 individuals; data unintelligible. See ENISA Recommendations for severity methodology (2013).
+  </div>
+</div>
+
+<script>
+  const el = (id) => document.getElementById(id);
+
+  function getBaseForCategory(cat) {
+    switch (cat) {
+      case 'simple': return 1;
+      case 'behavioural': return 2;
+      case 'financial': return 3;
+      case 'sensitive': return 4;
+      default: return 1;
+    }
+  }
+
+  function clampDPC(val) { return Math.min(4, Math.max(1, val)); }
+
+  function currentCategory() {
+    const radios = document.querySelectorAll('input[name="dpcCat"]');
+    for (const r of radios) if (r.checked) return r.value;
+    return 'simple';
+  }
+
+  function computeDPC() {
+    const base = getBaseForCategory(currentCategory());
+    const adj = parseFloat(el('dpcAdj').value || '0');
+    const dpc = clampDPC(base + adj);
+    el('dpcDisplay').textContent = dpc.toFixed(2);
+    return dpc;
+  }
+
+  function computeCB() {
+    const conf = parseFloat(el('cbConf').value || '0');
+    const integ = parseFloat(el('cbInteg').value || '0');
+    const avail = parseFloat(el('cbAvail').value || '0');
+    const mal = el('cbMalicious').checked ? 0.5 : 0.0;
+    const cb = conf + integ + avail + mal;
+    el('cbDisplay').textContent = cb.toFixed(2);
+    return cb;
+  }
+
+  function levelForScore(se) {
+    if (se < 2) return { label: 'Low', cls: 'low' };
+    if (se < 3) return { label: 'Medium', cls: 'med' };
+    if (se < 4) return { label: 'High', cls: 'high' };
+    return { label: 'Very High', cls: 'vhigh' };
+  }
+
+  function recalc() {
+    const dpc = computeDPC();
+    const ei = parseFloat(el('ei').value || '1');
+    const cb = computeCB();
+
+    const baseProduct = dpc * ei;
+    const se = baseProduct + cb;
+
+    el('baseProduct').textContent = baseProduct.toFixed(2);
+    el('cbTotal').textContent = cb.toFixed(2);
+    el('seScore').textContent = se.toFixed(2);
+
+    const lvl = levelForScore(se);
+    const levelNode = el('seLevel');
+    levelNode.textContent = lvl.label;
+    levelNode.className = `badge ${lvl.cls}`;
+
+    // flags
+    const flags = [];
+    const n = parseInt(el('numIndividuals').value || '0', 10);
+    if (!Number.isNaN(n) && n > 100) {
+      flags.push(`Flag: individuals > 100 (n = ${n})`);
+    }
+    if (el('flagUnintelligible').checked) {
+      flags.push('Flag: data unintelligible (e.g., strong encryption, no key compromise)');
+    }
+    const flagsArea = el('flagsArea');
+    flagsArea.innerHTML = '';
+    if (flags.length) {
+      for (const f of flags) {
+        const span = document.createElement('span');
+        span.className = 'flag';
+        span.textContent = f;
+        flagsArea.appendChild(span);
+      }
+    }
+  }
+
+  function resetAll() {
+    document.querySelector('input[name="dpcCat"][value="simple"]').checked = true;
+    el('dpcAdj').value = '0';
+    el('dpcNotes').value = '';
+    el('ei').value = '1';
+    el('cbConf').value = '0';
+    el('cbInteg').value = '0';
+    el('cbAvail').value = '0';
+    el('cbMalicious').checked = false;
+    el('numIndividuals').value = '';
+    el('flagUnintelligible').checked = false;
+    recalc();
+  }
+
+  // Event bindings
+  document.querySelectorAll('input[name="dpcCat"]').forEach(r => r.addEventListener('change', recalc));
+  el('dpcAdj').addEventListener('change', recalc);
+  el('ei').addEventListener('change', recalc);
+  el('cbConf').addEventListener('change', recalc);
+  el('cbInteg').addEventListener('change', recalc);
+  el('cbAvail').addEventListener('change', recalc);
+  el('cbMalicious').addEventListener('change', recalc);
+  el('numIndividuals').addEventListener('input', recalc);
+  el('flagUnintelligible').addEventListener('change', recalc);
+  el('btnRecalc').addEventListener('click', recalc);
+  el('btnReset').addEventListener('click', resetAll);
+
+  // Initial calc
+  recalc();
+</script>
+</body>
+</html>
