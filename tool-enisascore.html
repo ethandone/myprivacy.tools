@@ -1,124 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ENISA Data Breach Severity Calculator</title>
-<style>
-  :root {
-    --bg: #0f172a;
-    --panel: #111827;
-    --text: #e5e7eb;
-    --muted: #9ca3af;
-    --accent: #60a5fa;
-    --low: #22c55e;
-    --med: #f59e0b;
-    --high: #f97316;
-    --vhigh: #ef4444;
-    --border: #1f2937;
-  }
-  html, body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    margin: 0;
-    padding: 0;
-  }
-  .container { max-width: 980px; margin: 0 auto; padding: 24px; }
-  h1 { font-size: 1.5rem; margin: 0 0 12px; }
-  .subtitle { color: var(--muted); margin-bottom: 24px; }
-
-  .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-  @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
-
-  fieldset {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-  }
-  legend { padding: 0 6px; color: var(--muted); font-weight: 600; }
-  .row {
-    display: grid;
-    grid-template-columns: 190px 1fr;
-    gap: 12px;
-    align-items: start;
-    margin: 12px 0;
-  }
-  .row label { color: var(--muted); }
-  .choices { display: flex; flex-wrap: wrap; gap: 10px; }
-  .choices label {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: #0b1220; border: 1px solid var(--border);
-    padding: 8px 10px; border-radius: 8px; cursor: pointer;
-  }
-  input[type="radio"], input[type="checkbox"] { accent-color: var(--accent); }
-  select, input[type="number"], textarea {
-    width: 100%; background: #0b1220; border: 1px solid var(--border);
-    color: var(--text); border-radius: 8px; padding: 10px; outline: none;
-  }
-  textarea { min-height: 72px; resize: vertical; }
-  .help { color: var(--muted); font-size: 0.92rem; margin-top: 6px; }
-
-  .inline-badge {
-    display: inline-block; padding: 2px 8px; border-radius: 999px;
-    font-size: 0.85rem; font-weight: 600; border: 1px solid var(--border);
-    background: #0b1220; color: var(--muted);
-  }
-
-  .result {
-    background: linear-gradient(180deg, #0b1220, #0a101c);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px; margin-top: 16px;
-  }
-  .score-line {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    border-bottom: 1px dashed var(--border); padding-bottom: 10px; margin-bottom: 10px;
-  }
-  .score { font-size: 2rem; font-weight: 700; }
-
-  .badge { display: inline-block; padding: 6px 10px; border-radius: 8px; color: #0b1220; font-weight: 700; }
-  .low { background: var(--low); }
-  .med { background: var(--med); }
-  .high { background: var(--high); }
-  .vhigh { background: var(--vhigh); }
-
-  .formula { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-  .flags { display: flex; flex-wrap: wrap; gap: 8px; }
-  .flag { background: #0b1220; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; color: var(--muted); }
-  .actions { display: flex; gap: 10px; margin-top: 8px; }
-  button { background: #0b1220; border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
-  button.primary { background: var(--accent); color: #0b1220; font-weight: 700; border: none; }
-
-  .footnote { color: var(--muted); font-size: 0.9rem; margin-top: 10px; }
-
-  /* Details blocks */
-  details.helpbox {
-    margin-top: 10px; background: #0b1220; border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 12px;
-  }
-  details.helpbox summary {
-    cursor: pointer; color: var(--text); font-weight: 600;
-    list-style: none;
-  }
-  details.helpbox summary::-webkit-details-marker { display: none; }
-  .help-list { margin: 8px 0 0 0; padding-left: 18px; color: var(--muted); }
-  .help-list li { margin: 6px 0; }
-  .small { font-size: 0.9rem; }
-  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-</style>
+  <meta charset="UTF-8" />
+  <title>ENISA Data Breach Severity Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<div class="container">
-  <h1>ENISA Data Breach Severity Calculator</h1>
-  <div class="subtitle">Compute severity based on Data Processing Context (DPC), Ease of Identification (EI), and Circumstances of the Breach (CB).</div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">myprivacy.tools</a>
+      <nav class="main-nav">
+        <div class="nav-dropdown">
+          <a href="index.html" class="active">Tools</a>
+          <div class="nav-dropdown-menu">
+            <a href="index.html">All Tools</a>
+            <a href="tool-dsardeadline.html">DSAR Deadline Calculator</a>
+            <a href="tool-enisascore.html">ENISA Breach Severity Helper</a>
+          </div>
+        </div>
+        <a href="blog.html">Blog</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
 
-  <div class="grid">
+  <div class="container enisa-tool">
+    <h1>ENISA Data Breach Severity Calculator</h1>
+    <div class="subtitle">Compute severity based on Data Processing Context (DPC), Ease of Identification (EI), and Circumstances of the Breach (CB).</div>
+
+  <div class="enisa-grid">
     <fieldset>
       <legend>1) Data Processing Context (DPC)</legend>
 
-      <div class="row">
+      <div class="enisa-row">
         <label>Data category</label>
         <div class="choices" id="dpcCategory">
           <label><input type="radio" name="dpcCat" value="simple" checked /> Simple (base 1)</label>
@@ -139,7 +54,7 @@
         </ul>
       </details>
 
-      <div class="row">
+      <div class="enisa-row">
         <label>Context adjustment</label>
         <div>
           <select id="dpcAdj">
@@ -163,24 +78,15 @@
         </ul>
       </details>
 
-      <div class="row">
-        <label>Notes (optional)</label>
-        <div>
-          <textarea id="dpcNotes" placeholder="Explain contextual factors if deviating from the base score..."></textarea>
-          <div class="help">Helpful for record-keeping and explaining DPC adjustments.</div>
-        </div>
-      </div>
-
-      <div class="row">
+      <div class="enisa-row">
         <label>Computed DPC</label>
         <div><span id="dpcDisplay" class="inline-badge">1.00</span></div>
       </div>
     </fieldset>
-
     <fieldset>
       <legend>2) Ease of Identification (EI)</legend>
 
-      <div class="row">
+      <div class="enisa-row">
         <label>Identification level</label>
         <div>
           <select id="ei">
@@ -206,9 +112,11 @@
         </ul>
       </details>
 
-      <legend style="margin-top:16px;">3) Circumstances of the breach (CB)</legend>
+    </fieldset>
+    <fieldset>
+      <legend>3) Circumstances of the breach (CB)</legend>
 
-      <div class="row">
+      <div class="enisa-row">
         <label>Loss of confidentiality</label>
         <div>
           <select id="cbConf">
@@ -218,7 +126,7 @@
           </select>
         </div>
       </div>
-      <div class="row">
+      <div class="enisa-row">
         <label>Loss of integrity</label>
         <div>
           <select id="cbInteg">
@@ -228,7 +136,7 @@
           </select>
         </div>
       </div>
-      <div class="row">
+      <div class="enisa-row">
         <label>Loss of availability</label>
         <div>
           <select id="cbAvail">
@@ -238,7 +146,7 @@
           </select>
         </div>
       </div>
-      <div class="row">
+      <div class="enisa-row">
         <label>Malicious intent</label>
         <div class="choices">
           <label><input type="checkbox" id="cbMalicious" /> +0.5 Intentional/malicious</label>
@@ -255,7 +163,7 @@
         </ul>
       </details>
 
-      <div class="row">
+      <div class="enisa-row">
         <label>Computed CB</label>
         <div><span id="cbDisplay" class="inline-badge">0.00</span></div>
       </div>
@@ -263,15 +171,16 @@
   </div>
 
   <fieldset>
-    <legend>4) Flags (do not change score, but inform the assessment)</legend>
-    <div class="row">
+    <legend>4) Flags</legend>
+    <div class="help">Flags do not change score, but inform the assessment.</div>
+    <div class="enisa-row">
       <label>Individuals affected</label>
       <div>
         <input id="numIndividuals" type="number" min="0" step="1" placeholder="e.g., 1,000" />
         <div class="help">Flag is shown if count exceeds 100.</div>
       </div>
     </div>
-    <div class="row">
+    <div class="enisa-row">
       <label>Data unintelligible?</label>
       <div class="choices">
         <label><input type="checkbox" id="flagUnintelligible" /> Data unintelligible (e.g., strong encryption, no key compromise)</label>
@@ -287,7 +196,7 @@
     </details>
   </fieldset>
 
-  <div class="result" id="resultPanel">
+  <div class="enisa-result" id="resultPanel">
     <div class="score-line">
       <div>
         <div class="formula"><strong>Formula:</strong> <span class="mono">SE = DPC × EI + CB</span></div>
@@ -309,21 +218,30 @@
     </div>
     <div>
       <div class="flags" id="flagsArea"></div>
-      <div class="footnote">
-        Tip: Use the Notes under DPC to record justification for contextual adjustments and any assumptions.
-      </div>
-    </div>
-    <div class="actions">
-      <button class="primary" id="btnRecalc">Recalculate</button>
-      <button id="btnReset">Reset</button>
     </div>
   </div>
 
   <div class="footnote">
     This tool implements ENISA’s data breach severity approach: DPC (1–4, adjusted by context), EI (0.25/0.5/0.75/1), CB additive (0/0.25/0.5 per element; +0.5 malicious), with SE bands Low/Medium/High/Very High. Flags: &gt;100 individuals; data unintelligible. See ENISA Recommendations for severity methodology (2013).
   </div>
-</div>
+  </div>
 
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© <span id="year"></span> myprivacy.tools / Built with ♥ in London.</p>
+      <p class="footer-small">
+        Not legal advice. Always validate against your organisation's policies
+        and local legislation.
+      </p>
+      <p class="footer-small">
+        Built by Ethan Done - Senior Data Privacy and Governance Analyst @ Teya
+      </p>
+    </div>
+  </footer>
+
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
 <script>
   const el = (id) => document.getElementById(id);
 
@@ -431,9 +349,9 @@
   el('cbAvail').addEventListener('change', recalc);
   el('cbMalicious').addEventListener('change', recalc);
   el('numIndividuals').addEventListener('input', recalc);
+  el('numIndividuals').addEventListener('change', recalc);
+  el('numIndividuals').addEventListener('keyup', recalc);
   el('flagUnintelligible').addEventListener('change', recalc);
-  el('btnRecalc').addEventListener('click', recalc);
-  el('btnReset').addEventListener('click', resetAll);
 
   // Initial calc
   recalc();

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>myprivacy.tools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">myprivacy.tools</a>
+      <nav class="main-nav">
+        <div class="nav-dropdown">
+          <a href="index.html" class="active">Tools</a>
+          <div class="nav-dropdown-menu">
+            <a href="index.html">All Tools</a>
+            <a href="tool-dsardeadline.html">DSAR Deadline Calculator</a>
+            <a href="tool-enisascore.html">ENISA Breach Severity Helper</a>
+          </div>
+        </div>
+        <a href="blog.html">Blog</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <section class="hero">
+      <div class="container hero-inner">
+        <div>
+          <h1>Practical tools for privacy professionals</h1>
+          <p>
+            myprivacy.tools is <a href="about.html">Ethan Done's</a> personal playground for 
+            small yet useful tools to make daily privacy work easier, and where my personal blog sits.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="tools-section">
+      <div class="container">
+        <header class="section-header">
+          <h2>Privacy tools directory</h2>
+          <p>Utilities for day-to-day UK GDPR work.</p>
+        </header>
+
+        <div class="tools-controls">
+          <input
+            type="search"
+            id="toolSearch"
+            placeholder="Search tools (e.g. DSAR, ENISA, breach)…"
+            aria-label="Search tools"
+          />
+          <div class="filter-group" aria-label="Filter by category">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="dsar">DSAR</button>
+            <button class="filter-btn" data-filter="breach">Breach</button>
+          </div>
+        </div>
+
+        <div class="tools-grid" id="toolsGrid">
+          <!-- DSAR Deadline Calculator -->
+          <article class="tool-card" data-tags="dsar deadlines gdpr uk-gdpr">
+            <h3>
+              <a href="tool-dsardeadline.html">DSAR Deadline Calculator</a>
+            </h3>
+            <p>
+              Quickly work out DSAR response deadlines under UK GDPR,
+              including extensions and weekends. Incorporates UK national holidays
+              and short months.
+            </p>
+          </article>
+
+          <!-- ENISA Severity Helper -->
+          <article class="tool-card" data-tags="breach enisa severity notification ico dpa">
+            <h3>
+              <a href="tool-enisascore.html">ENISA Breach Severity Helper</a>
+            </h3>
+            <p>
+              Step through ENISA’s breach severity methodology to
+              approximate whether notification to a supervisory authority
+              (e.g. ICO) is likely required.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-teaser">
+      <div class="container">
+        <header class="section-header">
+          <h2>From the blog</h2>
+          <p>Personal blog covering privacy, AI, and personal musings.</p>
+        </header>
+
+        <div class="blog-teaser-grid">
+          <article class="post-card">
+            <h3>
+              <a href="blog-post-2.html">
+                My second blog post
+              </a>
+            </h3>
+            <p>
+              The post summary goes here. More summary here.
+            </p>
+            <p class="post-meta">Personal notes • ~3 min read</p>
+          </article>
+
+          <article class="post-card">
+            <h3>
+              <a href="blog-post-1.html">
+                Something about increase in DSARs due to AI
+              </a>
+            </h3>
+            <p>
+              blah blah blah rise in DSARs because of people sticking their complaint into chatgpt
+            </p>
+            <p class="post-meta">Privacy • ~3 min read</p>
+          </article>
+        </div>
+        <a class="text-link" href="blog.html">View all posts →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© <span id="year"></span> myprivacy.tools / Built with ♥ in London.</p>
+      <p class="footer-small">
+        Not legal advice. Always validate against your organisation’s policies
+        and local legislation.
+      </p>
+      <p class="footer-small">
+        Built by Ethan Done - Senior Data Privacy and Governance Analyst @ Teya
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Simple search + filter for tools
+    const searchInput = document.getElementById('toolSearch');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const toolsGrid = document.getElementById('toolsGrid');
+    const toolCards = Array.from(toolsGrid.querySelectorAll('.tool-card'));
+
+    function applyFilters() {
+      const query = searchInput.value.toLowerCase();
+      const activeFilterBtn = document.querySelector('.filter-btn.active');
+      const filter = activeFilterBtn ? activeFilterBtn.dataset.filter : 'all';
+
+      toolCards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        const tags = card.getAttribute('data-tags') || '';
+        const matchesSearch = !query || text.includes(query) || tags.includes(query);
+
+        let matchesFilter = filter === 'all';
+        if (!matchesFilter) {
+          matchesFilter = tags.includes(filter);
+        }
+
+        if (matchesSearch && matchesFilter) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilters();
+      });
+    });
+
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

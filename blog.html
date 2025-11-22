@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Blog – myprivacy.tools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">myprivacy.tools</a>
+      <nav class="main-nav">
+        <div class="nav-dropdown">
+          <a href="index.html">Tools</a>
+          <div class="nav-dropdown-menu">
+            <a href="index.html">All Tools</a>
+            <a href="tool-dsardeadline.html">DSAR Deadline Calculator</a>
+            <a href="tool-enisascore.html">ENISA Breach Severity Helper</a>
+          </div>
+        </div>
+        <a href="blog.html" class="active">Blog</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <section class="blog-teaser">
+      <div class="container">
+        <header class="section-header">
+          <h2>Blog posts</h2>
+          <p>Personal blog covering privacy, AI, and personal musings.</p>
+        </header>
+
+        <div class="blog-teaser-grid">
+          <article class="post-card">
+            <h3>
+              <a href="blog-post-2.html">
+                My second blog post
+              </a>
+            </h3>
+            <p>
+              The post summary goes here. More summary here.
+            </p>
+            <p class="post-meta">Personal notes • ~3 min read</p>
+          </article>
+
+          <article class="post-card">
+            <h3>
+              <a href="blog-post-1.html">
+                Something about increase in DSARs due to AI
+              </a>
+            </h3>
+            <p>
+              blah blah blah rise in DSARs because of people sticking their complaint into chatgpt
+            </p>
+            <p class="post-meta">Privacy • ~3 min read</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© <span id="year"></span> myprivacy.tools / Built with ♥ in London.</p>
+      <p class="footer-small">
+        Not legal advice. Always validate against your organisation’s policies
+        and local legislation.
+      </p>
+      <p class="footer-small">
+        Built by Ethan Done - Senior Data Privacy and Governance Analyst @ Teya
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

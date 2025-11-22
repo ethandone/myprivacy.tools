@@ -4,44 +4,28 @@
   <meta charset="UTF-8" />
   <title>DSAR Deadline Calculator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      --bg: #0f172a; --panel: #111827; --muted: #94a3b8; --text: #e5e7eb; --accent: #22c55e;
-      --warn: #f59e0b; --danger: #ef4444; --border: #1f2937; --input: #0b1220;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 24px; background: var(--bg); color: var(--text);
-      font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
-    h1 { font-size: 20px; margin: 0 0 8px; }
-    p.desc { color: var(--muted); margin: 0 0 20px; }
-    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 0 0 16px; }
-    .grid { display: grid; gap: 12px; grid-template-columns: repeat(12, 1fr); }
-    .col-12 { grid-column: span 12; } .col-6 { grid-column: span 6; } .col-4 { grid-column: span 4; } .col-3 { grid-column: span 3; }
-    label { display: block; font-weight: 600; margin-bottom: 6px; color: var(--text); }
-    input[type="date"], input[type="text"], select, textarea {
-      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
-      background: var(--input); color: var(--text);
-    }
-    textarea { min-height: 68px; resize: vertical; }
-    .row { display: flex; gap: 8px; align-items: center; }
-    .row > * { flex: 1; }
-    .btn { appearance: none; border: 1px solid var(--border); color: var(--text); background: #0b1220; padding: 10px 12px;
-      border-radius: 8px; cursor: pointer; transition: border-color .15s ease, background .15s ease, transform .02s; }
-    .btn:hover { border-color: #334155; background: #0d1424; } .btn:active { transform: translateY(1px); }
-    .btn-primary { background: #052e1a; border-color: #0f3b23; color: #d1fae5; }
-    .btn-primary:hover { background: #083822; border-color: #14532d; }
-    .btn-danger { background: #2b0b10; border-color: #3b0f14; color: #fee2e2; }
-    .note { color: var(--muted); font-size: 12px; }
-    .muted { color: var(--muted); }
-    .result { font-size: 16px; padding: 12px; border-radius: 10px; border: 1px dashed #374151; background: #0a101c; }
-    .result .final { font-size: 20px; font-weight: 700; color: #bbf7d0; }
-    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-    .tag { background: #0b1220; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; border-radius: 999px; font-size: 12px; }
-    .hidden { display: none; }
-    .small { font-size: 12px; }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
+
 </head>
 <body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">myprivacy.tools</a>
+      <nav class="main-nav">
+        <div class="nav-dropdown">
+          <a href="index.html" class="active">Tools</a>
+          <div class="nav-dropdown-menu">
+            <a href="index.html">All Tools</a>
+            <a href="tool-dsardeadline.html">DSAR Deadline Calculator</a>
+            <a href="tool-enisascore.html">ENISA Breach Severity Helper</a>
+          </div>
+        </div>
+        <a href="blog.html">Blog</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
+  
   <h1>DSAR Deadline Calculator</h1>
   <p class="desc">Add the received date and (if applicable) the ID verified date. The tool adds one calendar month from the clock start, pauses for your intervals, and moves the due date to the next working day if it falls on a weekend or UK bank holiday.</p>
 
@@ -107,7 +91,7 @@
   </div>
 
   <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <div class="card-header-row">
       <strong>Stop-the-clock intervals</strong>
       <button class="btn" id="addPauseBtn" type="button">+ Add pause</button>
     </div>
@@ -149,7 +133,7 @@
           <label>Reason (optional)</label>
           <input type="text" data-pause-reason placeholder="e.g., ID verification, clarification" />
         </div>
-        <div class="col-12 row" style="justify-content: space-between;">
+        <div class="col-12 row pause-footer">
           <label class="row" style="gap:6px; align-items:center; font-weight:500;">
             <input type="checkbox" data-include-end />
             <span class="small muted">Count the end date as paused (rare)</span>
@@ -378,6 +362,23 @@ if (filledPauses.length) addTag(`Pauses: ${filledPauses.length}`);
 
   // Sensible defaults
   addPauseRow();
+</script>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <p>© <span id="year"></span> myprivacy.tools / Built with ♥ in London.</p>
+    <p class="footer-small">
+      Not legal advice. Always validate against your organisation’s policies
+      and local legislation.
+    </p>
+    <p class="footer-small">
+      Built by Ethan Done - Senior Data Privacy and Governance Analyst @ Teya
+    </p>
+  </div>
+</footer>
+
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
